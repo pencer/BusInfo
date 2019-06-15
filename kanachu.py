@@ -53,34 +53,34 @@ if __name__ == '__main__':
         msg_approach = ""
         msg_destination = ""
         flg_destination = 0
+        flg_find_approach = 0
         print("Start parsing")
         for line in r.text.splitlines():
-            #if flg_destination == 0 and line.find("目的地</dt>") > -1:
             if flg_destination == 0 and line.find("<dt class=\"bg02\">目的地</dt>") > -1:
                 flg_destination = 1
-                #print(line)
             if flg_destination == 1 and line.find("<p><strong>") > -1:
                 res = p.sub(" ", line.strip())
-                #print(line)
                 msg_destination = res.strip()
                 flg_destination = 2
             if line.find("<nav id=early1>") > -1:
                 nav_id = 1
             if line.find("<nav id=early2>") > -1:
                 nav_id = 2
-            #if line.find("早い順") > -1:
-                #print(line)
             if nav_id == 1:
                 if line.find("time01") > -1:
                     res = p.sub(" ", line.strip())
-                    #print(line)
-                    #print(res)
                     msg_curtime = res.replace(':', u'時').replace(u'現在', u'分現在の').strip()
-                if line.find("color03") > -1:
-                    res = p.sub(" ", line.strip())
-                    #print(line)
-                    #print(res)
-                    msg_approach = res
+                    msg_approach = ""
+                    flg_find_approach = 1
+                #elif flg_find_approach == 1 and line.find("<p class=\"font13\">") > -1:
+                elif flg_find_approach == 1 and line.find("<div class=\"frameArea12\">") > -1:
+                    flg_find_approach = 2
+                elif flg_find_approach == 2 and len(line.strip()) > 0:
+                    if line.find("</p>") > -1:
+                        flg_find_approach = 0
+                    else:
+                        res = p.sub(" ", line.strip())
+                        msg_approach += res
         speak_message(msg_destination + u'行き、' + msg_curtime + u'情報です。' + msg_approach)
     except requests.exceptions.RequestException as err:
         print(err)
