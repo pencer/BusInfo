@@ -73,7 +73,8 @@ if __name__ == '__main__':
         wi = weather_info[target_area]
         msg_forecast = ""
         for item in wi:
-            msg_forecast += item[0] + u'、' + item[1] + u'。'
+            val = item[1].replace(u'後', u'のち')
+            msg_forecast += item[0] + u'、' + val + u'。'
         msg_speak = msg_pref + target_area + u'の天気予報。' + msg_forecast
         #print(msg_speak)
         talk.speak_message(msg_speak)
