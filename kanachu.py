@@ -1,42 +1,28 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import sys
 import requests
 import re
-import subprocess
-
-def speak_message(msg):
-    #open_jtalk = ['/usr/bin/open_jtalk']
-    open_jtalk = ['/home/pi/open_jtalk/open_jtalk-1.11/bin/open_jtalk']
-    htsvoice   = ['-m',  '/usr/share/hts-voice/mei/mei_normal.htsvoice']
-    #mech       = ['-x',  '/var/lib/mecab/dic/open-jtalk/naist-jdic']
-    mech       = ['-x',  '/home/pi/open_jtalk/open_jtalk-1.11/mecab-naist-jdic']
-    volume     = ['-g',  '-40']
-    volume     = ['-g',  '0']
-    outfile    = ['-ow', '/dev/stdout']
-    outtrace   = ['-ot', 'ttt']
-    cmd_jtalk  = open_jtalk + htsvoice + mech + volume + outfile + outtrace
-    aplay      = ['aplay']
-    device     = ['-D',  'plughw:1,0']
-    cmd_aplay  = aplay + device
-    print("speak_message: " + msg)
-    p1 = subprocess.Popen(cmd_jtalk, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(cmd_aplay, stdin=p1.stdout)
-    p1.stdin.write(msg.encode('utf-8'))
-    p1.stdin.close()
-    p2.wait()
+import talk
  
 if __name__ == '__main__':
-    #speak_message(u'あいう')
-    #speak_message(u'上矢部')
-    #speak_message(u'富士山下に あと9分で到着  運行中')
+    #talk.speak_message(u'あいう')
+    #talk.speak_message(u'上矢部')
+    #talk.speak_message(u'富士山下に あと9分で到着  運行中')
     #quit();
+    argv = sys.argv
     bs_Fujiyamashita = 12117
     bs_HigashitotsukaekiHigashiguchi = 12101
     bs_Kamiyabe = 12203
     bs_TotsukaekiHigashiguchi = 12001
     fromNO = bs_Fujiyamashita
     toNO = bs_HigashitotsukaekiHigashiguchi
+    fromNO = bs_Kamiyabe
+    toNO = bs_TotsukaekiHigashiguchi
+    if len(argv) == 3:
+        fromNO = argv[1]
+        toNO   = argv[2]
     #fromNO = bs_Kamiyabe
     #toNO = bs_TotsukaekiHigashiguchi
     url = "http://real.kanachu.jp/sp/DisplayApproachInfo?fNO={}&tNO={}&fNM=&tNM=".format(fromNO, toNO)
@@ -81,6 +67,6 @@ if __name__ == '__main__':
                     else:
                         res = p.sub(" ", line.strip())
                         msg_approach += res
-        speak_message(msg_destination + u'行き、' + msg_curtime + u'情報です。' + msg_approach)
+        talk.speak_message(msg_destination + u'行き、' + msg_curtime + u'情報です。' + msg_approach)
     except requests.exceptions.RequestException as err:
         print(err)

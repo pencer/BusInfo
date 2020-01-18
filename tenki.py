@@ -4,7 +4,7 @@
 import sys
 import requests
 import re
-import subprocess
+import talk
 
 if __name__ == '__main__':
     argv = sys.argv
@@ -26,20 +26,24 @@ if __name__ == '__main__':
         flg_startweather = 0
         msg_place = ""
         msg_weather = ""
-        print("Start parsing")
+        #print("Start parsing")
         for line in r.text.splitlines():
-            if flg_startweather == 0 and line.find("<div style=\"float: left\">") > -1:
+            if line.find("</h1>") > -1:
+                res = re.sub(r"<[^>]*?>", "", line.strip()).split(" ")
+                msg_pref = res[1]
+                #print(msg_pref)
+            elif flg_startweather == 0 and line.find("<div style=\"float: left\">") > -1:
                 msg_place = re.sub(r"<[^>]*?>", "", line.strip())
-                print("place: '{}'".format(msg_place))
-                weather_info[msg_place] = {}
+                #print("place: '{}'".format(msg_place))
+                weather_info[msg_place] = []
             elif flg_startweather == 0 and line.find("<th class=\"weather\">") > -1:
-                print("start weather")
+                #print("start weather")
                 flg_startweather = 1
             elif flg_startweather == 1 and line.find("</th>") > -1:
-                print("end weather")
+                #print("end weather")
                 flg_startweather = 0
             elif flg_startweather == 1 :#and line.find("</th>") > -1:
-                print("weather1: '{}'".format(line.strip()))
+                #print("weather1: '{}'".format(line.strip()))
                 #res = p.sub(" ", line.strip())
                 res = line.strip()
                 msg_weather = res
@@ -49,21 +53,30 @@ if __name__ == '__main__':
                 #print(tmp2)
                 time = tmp1[0]
                 weather = tmp2[5]
-                print("{}:{}".format(time, weather))
-                weather_info[msg_place][time] = weather
-        print(msg_place)
-        print(msg_weather)
-        print(weather_info)
-        print("output file")
-        filename = "testout.html"
-        with open(filename, mode='w') as f:
-            wi = weather_info['東部']
-            f.write("<html><head></head><body>")
-            f.write("<table>")
-            for key in wi.keys():
-                f.write("<tr><td>'{}'</td><td>'{}'</td></tr>".format(key, wi[key]))
-            f.write("</table>")
-            f.write("</body></html>")
+                #print("{}:{}".format(time, weather))
+                weather_info[msg_place].append((time, weather))
+        #print(msg_place)
+        #print(msg_weather)
+        #print(weather_info)
+
+        target_area = '東部'
+        #print("output file")
+        #filename = "testout.html"
+        #with open(filename, mode='w') as f:
+        #    wi = weather_info[target_area]
+        #    f.write("<html><head></head><body>")
+        #    f.write("<table>")
+        #    for item in wi:
+        #        f.write("<tr><td>'{}'</td><td>'{}'</td></tr>".format(item[0], item[1]))
+        #    f.write("</table>")
+        #    f.write("</body></html>")
+        wi = weather_info[target_area]
+        msg_forecast = ""
+        for item in wi:
+            msg_forecast += item[0] + u'、' + item[1] + u'。'
+        msg_speak = msg_pref + target_area + u'の天気予報。' + msg_forecast
+        #print(msg_speak)
+        talk.speak_message(msg_speak)
 
     except requests.exceptions.RequestException as err:
         print(err)
