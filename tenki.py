@@ -8,9 +8,18 @@ import talk
 
 if __name__ == '__main__':
     argv = sys.argv
-    if len(argv) == 3:
-        fromNO = argv[1]
-        toNO   = argv[2]
+    short_mode = 1
+    if len(argv) == 2:
+        if argv[1] == "-s":
+            short_mode = 1
+        elif argv[1] == "-l":
+            short_mode = 0
+        elif argv[1] == "-h":
+            print("Usage: script [-s|-l|-h]")
+            print("  -s: short version (default)")
+            print("  -l: long version")
+            print("  -h: show this message")
+            sys.exit()
     url = "http://www.jma.go.jp/jp/yoho/320.html"
     try:
         weather_info = {}
@@ -110,7 +119,8 @@ if __name__ == '__main__':
             val = val.replace(u'海上　では', u'海上では')
             val = val.replace(u'　から', u'から')
             val = val.replace(u'一時雨', u'一時あめ')
-            msg_forecast += val + u'。'
+            if short_mode != 1:
+                msg_forecast += val + u'。' # details
             if item[3] != "":
                 msg_forecast += item[3] + u'の気温。'
             if item[4] != "":
@@ -120,7 +130,10 @@ if __name__ == '__main__':
             if itemcnt >= 1:
                 break # upto two items are used
             itemcnt += 1
-        msg_speak = msg_pref + target_area + u'の天気予報をお伝えします。' + msg_forecast + u'以上です。バイバイ。'
+        if short_mode == 1:
+            msg_speak = msg_pref + target_area + u'の天気予報をお伝えします。' + msg_forecast + u'以上、ショートバージョンでお伝えしました。じゃぁね。バイバイ。'
+        else:
+            msg_speak = msg_pref + target_area + u'の天気予報をお伝えします。' + msg_forecast + u'以上です。バイバイ。'
         #print(msg_speak)
         talk.speak_message(msg_speak)
 
