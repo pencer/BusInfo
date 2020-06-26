@@ -92,7 +92,8 @@ if __name__ == '__main__':
                 tmp2 = res.split("\"")
                 tmp1 = res.split("<")
                 msg_time = tmp1[0]
-                msg_weather = tmp2[5]
+                if len(tmp2) > 6:
+                    msg_weather = tmp2[5]
                 flg_firstweather = 0
         #print(msg_place)
         #print(msg_weather)
@@ -108,6 +109,7 @@ if __name__ == '__main__':
             val = item[2].replace(u'後', u'のち')
             val = val.replace(u'海上　では', u'海上では')
             val = val.replace(u'　から', u'から')
+            val = val.replace(u'一時雨', u'一時あめ')
             msg_forecast += val + u'。'
             if item[3] != "":
                 msg_forecast += item[3] + u'の気温。'
