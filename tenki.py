@@ -114,6 +114,7 @@ if __name__ == '__main__':
         itemcnt = 0
         for item in wi:
             val = item[1].replace(u'後', u'のち')
+            val = val.replace(u'一時雨', u'一時あめ')
             msg_forecast += item[0] + u'、' + val + u'。'
             val = item[2].replace(u'後', u'のち')
             val = val.replace(u'海上　では', u'海上では')
