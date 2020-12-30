@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import requests
+#import requests
 import re
 import talk
+import subprocess
+import time
 
 if __name__ == '__main__':
     argv = sys.argv
@@ -22,13 +24,14 @@ if __name__ == '__main__':
             sys.exit()
     url = "http://www.jma.go.jp/jp/yoho/320.html"
     try:
+        st = time.time()
         weather_info = {}
         print("Fetch URL: " + url)
-        r = requests.get(url)
-        r.encoding = r.apparent_encoding
-        #r.encoding = "shift_jis"
-        #print(r.text)
-        #print(r.encoding)
+        #r = requests.get(url)
+        #r.encoding = r.apparent_encoding
+        ##r.encoding = "shift_jis"
+        ##print(r.text)
+        ##print(r.encoding)
         nav_id = 0
         p = re.compile(r"<[^>]*?>")
         flg_startweather = 0
@@ -41,8 +44,11 @@ if __name__ == '__main__':
         msg_city = ""
         msg_min = ""
         msg_max = ""
+        wgetcmd = ["wget", url, "-O", "-"]
+        res = subprocess.run(wgetcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         #print("Start parsing")
-        for line in r.text.splitlines():
+        #for line in r.text.splitlines():
+        for line in res.stdout.decode('utf-8').splitlines():
             if line.find("</h1>") > -1:
                 res = re.sub(r"<[^>]*?>", "", line.strip()).split(" ")
                 msg_pref = res[1]
@@ -135,8 +141,12 @@ if __name__ == '__main__':
             msg_speak = msg_pref + target_area + u'の天気予報をお伝えします。' + msg_forecast + u'以上、ショートバージョンでお伝えしました。じゃぁね。バイバイ。'
         else:
             msg_speak = msg_pref + target_area + u'の天気予報をお伝えします。' + msg_forecast + u'以上です。バイバイ。'
+        dt = time.time() - st
+        print(dt)
         #print(msg_speak)
         talk.speak_message(msg_speak)
 
-    except requests.exceptions.RequestException as err:
-        print(err)
+    #except requests.exceptions.RequestException as err:
+    #    print(err)
+    except:
+        print("Error.")
