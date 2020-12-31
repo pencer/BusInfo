@@ -39,20 +39,34 @@ if __name__ == '__main__':
 
             msg_speak = ""
             phase = 0
+            mode = 0
             book_cnt = 0
             book_titles = ""
+            book_duedate = ""
             p = re.compile(r"<[^>]*?>")
             for line in res.stdout.decode('utf-8').splitlines():
-                if line.find('<FORM NAME="EXTEND"') > -1:
+                if line.find('<TR class="middleAppArea">') > -1:
                     phase = 1
-                if line.find('<FORM NAME="DELETE"') > -1:
+                    mode = 1
+                elif phase == 1 and line.find('<TD ALIGN="CENTER">') > -1:
                     phase = 2
-                if phase == 1 and line.find('<a href="OPP1500') > -1:
+                elif phase == 2 and line.find('<TD ALIGN="CENTER">') > -1:
+                    phase = 3
+                elif phase == 3:
+                    data = p.sub(" ", line.strip()).replace('/0','/')
+                    book_duedate = data[5:].replace('/', u'月') + u'日'
+                    phase = 4
+                if phase == 4 and line.find('<A class="linkcolor_v"') > -1:
                     data = p.sub(" ", line.strip())
-                    book_titles += data + u'、'
+                    book_titles += data + u'、返却期限日' + book_duedate + u'、'
                     book_cnt += 1
+                    phase = 0
+                elif mode == 1 and line.find('</TABLE>') > -1:
+                    phase = 0
+                    break
 
             msg_speak = username + u'さんが現在貸出中の本は' + str(book_cnt) + u'冊です。' + book_titles
+            #print(msg_speak)
             talk.speak_message(msg_speak)
 
 # requests package is slow... use wget command instead.
