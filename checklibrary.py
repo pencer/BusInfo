@@ -11,20 +11,17 @@ import os
 
 if __name__ == '__main__':
     argv = sys.argv
-    short_mode = 1
+    silent_mode = 0
     if len(argv) == 2:
         if argv[1] == "-s":
-            short_mode = 1
-        elif argv[1] == "-l":
-            short_mode = 0
+            silent_mode = 1
         elif argv[1] == "-h":
             print("Usage: script [-s|-l|-h]")
-            print("  -s: short version (default)")
-            print("  -l: long version")
+            print("  -s: silent mode")
             print("  -h: show this message")
             sys.exit()
-    url1 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP0200"
-    url2 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP1000"
+    #url1 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP0200"
+    #url2 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP1000"
     try:
         dirname = os.path.dirname(os.path.abspath(__file__))
         json_open = open(dirname + '/library_ids.json', 'r')
@@ -51,7 +48,7 @@ if __name__ == '__main__':
                     data = p.sub(" ", line.strip())
                     print(data)
                     rent_cnt = int(data[10])
-                    print(rent_cnt)
+                    #print(rent_cnt)
                     if rent_cnt == 0:
                         flag_yoyaku = 1
                     dbg_msg += data
@@ -59,7 +56,7 @@ if __name__ == '__main__':
                     data = p.sub(" ", line.strip())
                     print(data)
                     reserve_cnt = int(data[10])
-                    print(reserve_cnt)
+                    #print(reserve_cnt)
                     dbg_msg += data
                 if line.find('<TR class="middleAppArea">') > -1:
                     phase = 1
@@ -86,8 +83,10 @@ if __name__ == '__main__':
 
             msg_speak = username + u'さんが現在' + dbg_msg + book_titles
             #msg_speak = username + u'さんが現在貸出中の本は' + str(book_cnt) + u'冊です。' + dbg_msg + book_titles
-            #print(msg_speak)
-            talk.speak_message(msg_speak)
+            if silent_mode == 1:
+                print(msg_speak)
+            else:
+                talk.speak_message(msg_speak)
 
 # requests package is slow... use wget command instead.
 #        print("Fetch URL: " + url1)
