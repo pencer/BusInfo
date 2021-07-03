@@ -39,12 +39,28 @@ if __name__ == '__main__':
 
             msg_speak = ""
             phase = 0
+            flag_yoyaku = 0
             mode = 0
             book_cnt = 0
             book_titles = ""
             book_duedate = ""
+            dbg_msg = ""
             p = re.compile(r"<[^>]*?>")
             for line in res.stdout.decode('utf-8').splitlines():
+                if line.find('貸出中</FONT>の資料：') > -1:
+                    data = p.sub(" ", line.strip())
+                    print(data)
+                    rent_cnt = int(data[10])
+                    print(rent_cnt)
+                    if rent_cnt == 0:
+                        flag_yoyaku = 1
+                    dbg_msg += data
+                if line.find('予約中</FONT>の資料：') > -1:
+                    data = p.sub(" ", line.strip())
+                    print(data)
+                    reserve_cnt = int(data[10])
+                    print(reserve_cnt)
+                    dbg_msg += data
                 if line.find('<TR class="middleAppArea">') > -1:
                     phase = 1
                     mode = 1
@@ -58,14 +74,18 @@ if __name__ == '__main__':
                     phase = 4
                 if phase == 4 and line.find('<A class="linkcolor_v"') > -1:
                     data = p.sub(" ", line.strip())
-                    book_titles += data + u'、返却期限日' + book_duedate + u'、'
+                    if flag_yoyaku == 1:
+                        book_titles += data + u'、予約日' + book_duedate + u'、'
+                    else:
+                        book_titles += data + u'、返却期限日' + book_duedate + u'、'
                     book_cnt += 1
                     phase = 0
                 elif mode == 1 and line.find('</TABLE>') > -1:
                     phase = 0
                     break
 
-            msg_speak = username + u'さんが現在貸出中の本は' + str(book_cnt) + u'冊です。' + book_titles
+            msg_speak = username + u'さんが現在' + dbg_msg + book_titles
+            #msg_speak = username + u'さんが現在貸出中の本は' + str(book_cnt) + u'冊です。' + dbg_msg + book_titles
             #print(msg_speak)
             talk.speak_message(msg_speak)
 
