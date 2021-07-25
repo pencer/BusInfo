@@ -22,15 +22,19 @@ if __name__ == '__main__':
             sys.exit()
     #url1 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP0200"
     #url2 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP1000"
+    outhtml = "out.html"
     try:
         dirname = os.path.dirname(os.path.abspath(__file__))
         json_open = open(dirname + '/library_ids.json', 'r')
         json_data = json.load(json_open)
+        out_file = open("out.html", 'w')
+        out_file.write("<html><head></head><body>")
         for k in sorted(json_data.keys()):
             username = json_data[k]['NAME']
             userid = json_data[k]['USERID']
             passwd = json_data[k]['PASSWORD']
             checkcmd = [dirname + "/checklibrary.sh", userid, passwd]
+            #checkcmd = ["cat", "01.html"]
             res = subprocess.run(checkcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             #print (res.stdout.decode('utf-8'))
 
@@ -41,6 +45,7 @@ if __name__ == '__main__':
             book_cnt = 0
             book_titles = ""
             book_duedate = ""
+            book_data = [];
             dbg_msg = ""
             p = re.compile(r"<[^>]*?>")
             for line in res.stdout.decode('utf-8').splitlines():
@@ -75,6 +80,8 @@ if __name__ == '__main__':
                         book_titles += data + u'、予約日' + book_duedate + u'、'
                     else:
                         book_titles += data + u'、返却期限日' + book_duedate + u'、'
+                        #book_data.append(data)
+                        book_data.append((data, book_duedate))
                     book_cnt += 1
                     phase = 0
                 elif mode == 1 and line.find('</TABLE>') > -1:
@@ -87,6 +94,11 @@ if __name__ == '__main__':
                 print(msg_speak)
             else:
                 talk.speak_message(msg_speak)
+            out_file.write("<h2>{}さんが現在貸出中{}冊</h2><table>".format(username, book_cnt))
+            for m in (book_data):
+                print(m)
+                out_file.write("<tr><td>{}</td><td>{}</td></tr>".format(m[0], m[1]))
+            out_file.write("</table>")
 
 # requests package is slow... use wget command instead.
 #        print("Fetch URL: " + url1)
