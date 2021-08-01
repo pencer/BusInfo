@@ -34,7 +34,7 @@ if __name__ == '__main__':
             userid = json_data[k]['USERID']
             passwd = json_data[k]['PASSWORD']
             checkcmd = [dirname + "/checklibrary.sh", userid, passwd]
-            #checkcmd = ["cat", "01.html"]
+            checkcmd = ["cat", "04.html"]
             res = subprocess.run(checkcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             #print (res.stdout.decode('utf-8'))
 
@@ -71,7 +71,7 @@ if __name__ == '__main__':
                 elif phase == 2 and line.find('<TD ALIGN="CENTER">') > -1:
                     phase = 3
                 elif phase == 3:
-                    data = p.sub(" ", line.strip()).replace('/0','/')
+                    data = p.sub(" ", line.strip()).strip().replace('/0','/')
                     book_duedate = data[5:].replace('/', u'月') + u'日'
                     phase = 4
                 if phase == 4 and line.find('<A class="linkcolor_v"') > -1:
