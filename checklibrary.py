@@ -33,6 +33,8 @@ if __name__ == '__main__':
         out_file.write("<style type=\"text/css\">\n<!--\ntable {font-size:x-large; font-weight:bold;}\n-->\n</style>\n")
         out_file.write("<meta http-equiv=\"refresh\" content=\"60\">\n")
         out_file.write("</head><body>\n")
+        today_dt = datetime.datetime.now()
+        out_file.write("<p>{}\時点の情報</p>\n".format(today_dt.strftime('%Y/%m/%d %H:%M:%S')))
         out_file.write("<table><tr>\n")
         idx = 0
         for k in sorted(json_data.keys()):
@@ -95,7 +97,18 @@ if __name__ == '__main__':
                     phase = 0
                     break
 
-            msg_speak = username + u'さんが現在' + dbg_msg + book_titles
+            #msg_speak = username + u'さんが現在' + dbg_msg + book_titles
+            msg_speak = username + u'さんが現在' + dbg_msg 
+            prev_dt = today_dt
+            for m in (book_data):
+                bookname_str = m[0]
+                duedate_str = m[1]
+                duedate_dt = datetime.datetime.strptime(duedate_str, '%Y/%m/%d')
+                if prev_dt != duedate_dt:
+                    jbook_duedate = duedate_str[5:].replace('/', u'月') + u'日'
+                    msg_speak += u'、返却期限日' + jbook_duedate + u'、'
+                msg_speak += bookname_str + u'、'
+                prev_dt = duedate_dt
             #msg_speak = username + u'さんが現在貸出中の本は' + str(book_cnt) + u'冊です。' + dbg_msg + book_titles
             if silent_mode == 1:
                 print(msg_speak)
@@ -103,8 +116,6 @@ if __name__ == '__main__':
                 talk.speak_message(msg_speak)
 
             # Output HTML
-            today_dt = datetime.datetime.now()
-            out_file.write("<p>{}\時点の情報</p>\n".format(today_dt.strftime('%Y/%m/%d %H:%M:%S')))
             out_file.write("<td>\n")
             out_file.write("<h2>{}さんが現在貸出中{}冊</h2><table>".format(username, book_cnt))
             for m in (book_data):
