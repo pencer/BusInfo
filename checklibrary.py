@@ -8,6 +8,7 @@ import talk
 import subprocess
 import json
 import os
+import datetime
 
 if __name__ == '__main__':
     argv = sys.argv
@@ -34,7 +35,7 @@ if __name__ == '__main__':
             userid = json_data[k]['USERID']
             passwd = json_data[k]['PASSWORD']
             checkcmd = [dirname + "/checklibrary.sh", userid, passwd]
-            checkcmd = ["cat", "04.html"]
+            #checkcmd = ["cat", "04.html"]
             res = subprocess.run(checkcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             #print (res.stdout.decode('utf-8'))
 
@@ -72,14 +73,15 @@ if __name__ == '__main__':
                     phase = 3
                 elif phase == 3:
                     data = p.sub(" ", line.strip()).strip().replace('/0','/')
-                    book_duedate = data[5:].replace('/', u'月') + u'日'
+                    book_duedate = data
                     phase = 4
                 if phase == 4 and line.find('<A class="linkcolor_v"') > -1:
                     data = p.sub(" ", line.strip())
+                    jbook_duedate = book_duedate[5:].replace('/', u'月') + u'日'
                     if flag_yoyaku == 1:
-                        book_titles += data + u'、予約日' + book_duedate + u'、'
+                        book_titles += data + u'、予約日' + jbook_duedate + u'、'
                     else:
-                        book_titles += data + u'、返却期限日' + book_duedate + u'、'
+                        book_titles += data + u'、返却期限日' + jbook_duedate + u'、'
                         #book_data.append(data)
                         book_data.append((data, book_duedate))
                     book_cnt += 1
@@ -94,10 +96,16 @@ if __name__ == '__main__':
                 print(msg_speak)
             else:
                 talk.speak_message(msg_speak)
+
             out_file.write("<h2>{}さんが現在貸出中{}冊</h2><table>".format(username, book_cnt))
             for m in (book_data):
                 print(m)
-                out_file.write("<tr><td>{}</td><td>{}</td></tr>".format(m[0], m[1]))
+                duedate_dt = datetime.datetime.strptime(m[1], '%Y/%m/%d')
+                today_dt = datetime.datetime.now()
+                if duedate_dt <= today_dt:
+                    out_file.write("<tr><td>{}</td><td style=\"color: red\">{}</td></tr>".format(m[0], m[1]))
+                else:
+                    out_file.write("<tr><td>{}</td><td>{}</td></tr>".format(m[0], m[1]))
             out_file.write("</table>")
 
 # requests package is slow... use wget command instead.
