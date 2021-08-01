@@ -9,26 +9,35 @@ import subprocess
 import json
 import os
 import datetime
+import getopt
 
 if __name__ == '__main__':
     argv = sys.argv
+    htmlfilename = "out.html"
     silent_mode = 0
-    if len(argv) == 2:
-        if argv[1] == "-s":
+    try:
+        options, args = getopt.getopt(sys.argv[1:], 'so:h', ['silent', 'outhtml', 'help'])
+    except getopt.GetoptError:
+        print("Error: given options are not correct.")
+        sys.exit()
+    for option, value in options:
+        if option in ('-s', '--silent'):
             silent_mode = 1
-        elif argv[1] == "-h":
+        elif option in ('-o', '--outhtml'):
+            htmlfilename = value
+        elif option in ('-h', '--help'):
             print("Usage: script [-s|-l|-h]")
             print("  -s: silent mode")
+            print("  -o <filename>: specify output HTML file name")
             print("  -h: show this message")
             sys.exit()
     #url1 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP0200"
     #url2 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP1000"
-    outhtml = "out.html"
     try:
         dirname = os.path.dirname(os.path.abspath(__file__))
         json_open = open(dirname + '/library_ids.json', 'r')
         json_data = json.load(json_open)
-        out_file = open("out.html", 'w')
+        out_file = open(htmlfilename, 'w')
         out_file.write("<html><head>\n")
         out_file.write("<style type=\"text/css\">\n<!--\ntable {font-size:x-large; font-weight:bold;}\n-->\n</style>\n")
         out_file.write("<meta http-equiv=\"refresh\" content=\"60\">\n")
