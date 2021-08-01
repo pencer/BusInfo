@@ -29,7 +29,12 @@ if __name__ == '__main__':
         json_open = open(dirname + '/library_ids.json', 'r')
         json_data = json.load(json_open)
         out_file = open("out.html", 'w')
-        out_file.write("<html><head></head><body>")
+        out_file.write("<html><head>\n")
+        out_file.write("<style type=\"text/css\">\n<!--\ntable {font-size:x-large; font-weight:bold;}\n-->\n</style>\n")
+        out_file.write("<meta http-equiv=\"refresh\" content=\"60\">\n")
+        out_file.write("</head><body>\n")
+        out_file.write("<table><tr>\n")
+        idx = 0
         for k in sorted(json_data.keys()):
             username = json_data[k]['NAME']
             userid = json_data[k]['USERID']
@@ -97,16 +102,25 @@ if __name__ == '__main__':
             else:
                 talk.speak_message(msg_speak)
 
+            # Output HTML
+            today_dt = datetime.datetime.now()
+            out_file.write("<p>{}\時点の情報</p>\n".format(today_dt.strftime('%Y/%m/%d %H:%M:%S')))
+            out_file.write("<td>\n")
             out_file.write("<h2>{}さんが現在貸出中{}冊</h2><table>".format(username, book_cnt))
             for m in (book_data):
                 print(m)
                 duedate_dt = datetime.datetime.strptime(m[1], '%Y/%m/%d')
-                today_dt = datetime.datetime.now()
                 if duedate_dt <= today_dt:
                     out_file.write("<tr><td>{}</td><td style=\"color: red\">{}</td></tr>".format(m[0], m[1]))
                 else:
                     out_file.write("<tr><td>{}</td><td>{}</td></tr>".format(m[0], m[1]))
-            out_file.write("</table>")
+            out_file.write("</table>\n")
+            out_file.write("</td>\n")
+            if (idx%2) == 1:
+                out_file.write("</tr><tr>")
+            idx += 1
+        out_file.write("</tr></table>\n")
+        out_file.write("</body></html>\n")
 
 # requests package is slow... use wget command instead.
 #        print("Fetch URL: " + url1)
