@@ -68,6 +68,9 @@ if __name__ == '__main__':
             book_cnt = 0
             book_titles = ""
             book_duedate = ""
+            book_title = ""
+            book_flag_cannotextend = False
+            book_flag_reserved = False
             book_data = [];
             dbg_msg = ""
             p = re.compile(r"<[^>]*?>")
@@ -98,7 +101,7 @@ if __name__ == '__main__':
                     data = p.sub(" ", line.strip()).strip().replace('/0','/')
                     book_duedate = data
                     phase = 4
-                if phase == 4 and line.find('<A class="linkcolor_v"') > -1:
+                elif phase == 4 and line.find('<A class="linkcolor_v"') > -1:
                     data = p.sub(" ", line.strip())
                     print(data)
                     jbook_duedate = book_duedate[5:].replace('/', u'月') + u'日'
@@ -106,10 +109,24 @@ if __name__ == '__main__':
                         book_titles += data + u'、予約日' + jbook_duedate + u'、'
                     else:
                         book_titles += data + u'、返却期限日' + jbook_duedate + u'、'
-                        #book_data.append(data)
-                        book_data.append((data, book_duedate))
-                    book_cnt += 1
-                    phase = 0
+                        book_title = data
+                    phase = 5
+                elif phase == 5:
+                    if line.find('延長不可') > -1:
+                        book_flag_cannotextend = True
+                    if line.find('予約が入っている資料です') > -1:
+                        book_flag_reserved = True
+                    if line.find('</TR>') > -1:
+                        if book_title != "":
+                            book_data.append((book_title, book_duedate, book_flag_cannotextend, book_flag_reserved))
+                        book_cnt += 1
+
+                        # clear temporary variables
+                        book_title = ""
+                        book_flag_cannotextend = False
+                        book_flag_reserved = False
+
+                        phase = 0
                 elif mode == 1 and line.find('</TABLE>') > -1:
                     phase = 0
                     break
@@ -139,7 +156,8 @@ if __name__ == '__main__':
                 print(m)
                 duedate_dt = datetime.datetime.strptime(m[1], '%Y/%m/%d')
                 if duedate_dt <= today_dt:
-                    out_file.write("<tr><td>{}</td><td class=\"lv2b\" style=\"color: red\">{}</td></tr>".format(m[0], m[1]))
+                    strflag = u'予約あり' if m[3] == True else u''
+                    out_file.write("<tr><td>{}</td><td class=\"lv2b\" style=\"color: red\">{}{}</td></tr>".format(m[0], m[1], strflag))
                 else:
                     out_file.write("<tr><td>{}</td><td class=\"lv2b\">{}</td></tr>".format(m[0], m[1]))
             out_file.write("</table>\n")
