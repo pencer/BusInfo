@@ -39,8 +39,14 @@ if __name__ == '__main__':
         json_data = json.load(json_open)
         out_file = open(htmlfilename, 'w')
         out_file.write("<html><head>\n")
-        out_file.write("<style type=\"text/css\">\n<!--\ntable {font-size:x-large; font-weight:bold;}\n-->\n</style>\n")
-        out_file.write("<meta http-equiv=\"refresh\" content=\"60\">\n")
+        out_file.write("<style type=\"text/css\">\n<!--\n")
+        out_file.write("table {font-size:2vw; font-weight:bold;}\n")
+        out_file.write("body {height: 100vh;}\n")
+        out_file.write(".lv1 {width: 49vw;}\n")
+        out_file.write(".lv2 {width: 46vw;}\n")
+        out_file.write(".lv2b {width: 10vw;}\n")
+        out_file.write("-->\n</style>\n")
+        #out_file.write("<meta http-equiv=\"refresh\" content=\"60\">\n")
         out_file.write("</head><body>\n")
         today_dt = datetime.datetime.now()
         out_file.write("<p>{}\時点の情報</p>\n".format(today_dt.strftime('%Y/%m/%d %H:%M:%S')))
@@ -73,7 +79,7 @@ if __name__ == '__main__':
                     #print(rent_cnt)
                     if rent_cnt == 0:
                         flag_yoyaku = 1
-                    dbg_msg += data
+                    dbg_msg += data + u'、'
                 if line.find('予約中</FONT>の資料：') > -1:
                     data = p.sub(" ", line.strip())
                     print(data)
@@ -83,7 +89,8 @@ if __name__ == '__main__':
                 if line.find('<TR class="middleAppArea">') > -1:
                     phase = 1
                     mode = 1
-                elif phase == 1 and line.find('<TD ALIGN="CENTER">') > -1:
+                elif phase == 1 and line.find('<TD ALIGN="RIGHT">') > -1:
+                    # 貸出延長ボックス列(CENTER)が存在する場合としない場合があるため読み飛ばす
                     phase = 2
                 elif phase == 2 and line.find('<TD ALIGN="CENTER">') > -1:
                     phase = 3
@@ -93,6 +100,7 @@ if __name__ == '__main__':
                     phase = 4
                 if phase == 4 and line.find('<A class="linkcolor_v"') > -1:
                     data = p.sub(" ", line.strip())
+                    print(data)
                     jbook_duedate = book_duedate[5:].replace('/', u'月') + u'日'
                     if flag_yoyaku == 1:
                         book_titles += data + u'、予約日' + jbook_duedate + u'、'
@@ -107,7 +115,7 @@ if __name__ == '__main__':
                     break
 
             #msg_speak = username + u'さんが現在' + dbg_msg + book_titles
-            msg_speak = username + u'さんが現在' + dbg_msg 
+            msg_speak = username + u'さんが現在' + dbg_msg.replace(' ', '').replace(u'：', '') 
             prev_dt = today_dt
             for m in (book_data):
                 bookname_str = m[0]
@@ -125,15 +133,15 @@ if __name__ == '__main__':
                 talk.speak_message(msg_speak)
 
             # Output HTML
-            out_file.write("<td>\n")
-            out_file.write("<h2>{}さんが現在貸出中{}冊</h2><table>".format(username, book_cnt))
+            out_file.write("<td class=\"lv1\">\n")
+            out_file.write("<h2>{}さんが現在貸出中{}冊</h2><table class=\"lv2\">".format(username, book_cnt))
             for m in (book_data):
                 print(m)
                 duedate_dt = datetime.datetime.strptime(m[1], '%Y/%m/%d')
                 if duedate_dt <= today_dt:
-                    out_file.write("<tr><td>{}</td><td style=\"color: red\">{}</td></tr>".format(m[0], m[1]))
+                    out_file.write("<tr><td>{}</td><td class=\"lv2b\" style=\"color: red\">{}</td></tr>".format(m[0], m[1]))
                 else:
-                    out_file.write("<tr><td>{}</td><td>{}</td></tr>".format(m[0], m[1]))
+                    out_file.write("<tr><td>{}</td><td class=\"lv2b\">{}</td></tr>".format(m[0], m[1]))
             out_file.write("</table>\n")
             out_file.write("</td>\n")
             if (idx%2) == 1:
