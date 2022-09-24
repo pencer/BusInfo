@@ -10,6 +10,7 @@ import json
 import os
 import datetime
 import getopt
+import csv
 
 if __name__ == '__main__':
     argv = sys.argv
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     #url2 = "https://opac.lib.city.yokohama.lg.jp/opac/OPP1000"
     try:
         dirname = os.path.dirname(os.path.abspath(__file__))
+        recordfile = os.path.join(dirname, "record.csv")
         json_open = open(dirname + '/library_ids.json', 'r')
         json_data = json.load(json_open)
         out_file = open(htmlfilename, 'w')
@@ -51,6 +53,7 @@ if __name__ == '__main__':
         today_dt = datetime.datetime.now()
         out_file.write("<p>{}\時点の情報</p>\n".format(today_dt.strftime('%Y/%m/%d %H:%M:%S')))
         out_file.write("<table><tr>\n")
+        booklist = []
         idx = 0
         for k in sorted(json_data.keys()):
             username = json_data[k]['NAME']
@@ -131,6 +134,9 @@ if __name__ == '__main__':
                     phase = 0
                     break
 
+            for m in (book_data):
+                booklist.append(m[0])
+
             #msg_speak = username + u'さんが現在' + dbg_msg + book_titles
             msg_speak = username + u'さんが現在' + dbg_msg.replace(' ', '').replace(u'：', '') 
             prev_dt = today_dt
@@ -167,6 +173,22 @@ if __name__ == '__main__':
             idx += 1
         out_file.write("</tr></table>\n")
         out_file.write("</body></html>\n")
+
+        # Load record file
+        recordlist = []
+        if os.path.exists(recordfile):
+            with open(recordfile, 'r') as recordf:
+                reader = csv.reader(recordf)
+                for line in reader:
+                    recordlist.append(line[0])
+        # Merge booklist into record file
+        for book in booklist:
+            if book not in recordlist:
+                recordlist.append(book)
+        with open(recordfile, 'w') as recordf:
+            writer = csv.writer(recordf)
+            for book in recordlist:
+                writer.writerow([book])
 
 # requests package is slow... use wget command instead.
 #        print("Fetch URL: " + url1)
